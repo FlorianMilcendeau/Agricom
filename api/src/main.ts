@@ -5,22 +5,18 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
+import loggerConfig from './logger/logger.config';
 
 async function bootstrap() {
+  const fastifyAdapter = new FastifyAdapter({ logger: loggerConfig });
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({
-      logger: {
-        transport: {
-          target: 'pino-pretty',
-          options: {
-            translateTime: 'dd/mm/yyyy HH:MM:ss Z',
-            ignore: 'pid,hostname',
-          },
-        },
-      },
-    }),
+    fastifyAdapter,
+    { bufferLogs: true },
   );
+  app.useLogger(app.get(Logger));
+  app.flushLogs();
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(process.env.PORT ?? 3000);
 }
