@@ -4,8 +4,8 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import { ValidationPipe } from '@nestjs/common';
-import { Logger } from 'nestjs-pino';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { Logger, PinoLogger } from 'nestjs-pino';
 import loggerConfig from './logger/logger.config';
 
 async function bootstrap() {
@@ -15,9 +15,24 @@ async function bootstrap() {
     fastifyAdapter,
     { bufferLogs: true },
   );
-  app.useLogger(app.get(Logger));
+
+  /** Init Logger */
+  const logger = app.get(Logger);
+  app.useLogger(logger);
   app.flushLogs();
-  app.useGlobalPipes(new ValidationPipe());
+  const pinoLogger = await app.resolve(PinoLogger);
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      exceptionFactory: (errors) => {
+        pinoLogger.error({ metadata: errors.at(0).target }, 'Validation error');
+        throw new BadRequestException(
+          errors.map((error) => Object.values(error.constraints)).flat(),
+        );
+      },
+    }),
+  );
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

@@ -1,4 +1,7 @@
 export default {
+  base: {
+    application: 'api',
+  },
   transport: {
     target: 'pino-pretty',
     options: {
