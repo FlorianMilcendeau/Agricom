@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   IsDateString,
   IsEmail,
+  IsIn,
   IsString,
   IsStrongPassword,
   ValidateNested,
@@ -40,6 +41,7 @@ export class CreateUserInput {
   password: string;
 
   @IsString()
+  @IsIn(['Male', 'Female'])
   gender: Gender;
 
   @Type(() => CreateUserAddressInput)
