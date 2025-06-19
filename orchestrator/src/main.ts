@@ -11,7 +11,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 async function bootstrap() {
   const fastifyAdapter = new FastifyAdapter({
-    genReqId: (req) => req.headers['x-correlation-id'] ?? uuidv4(),
+    genReqId: (req: { headers: { [x: string]: any } }): string =>
+      typeof req.headers['x-correlation-id'] === 'string'
+        ? req.headers['x-correlation-id']
+        : uuidv4(),
     logger: loggerConfig,
   });
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -32,15 +35,18 @@ async function bootstrap() {
       transform: true,
       exceptionFactory: (errors) => {
         pinoLogger.setContext(ValidationPipe.name);
-        pinoLogger.error({ metadata: errors.at(0).target }, 'Validation error');
+        pinoLogger.error(
+          { metadata: errors.at(0)?.target ?? undefined },
+          'Validation error',
+        );
         throw new BadRequestException(
           errors
             .map((error) =>
               error.children
                 ? error.children.map((child) =>
-                    Object.values(child.constraints),
+                    Object.values(child.constraints ?? {}),
                   )
-                : Object.values(error.constraints),
+                : Object.values(error.constraints ?? {}),
             )
             .flat(),
           'Validation error',

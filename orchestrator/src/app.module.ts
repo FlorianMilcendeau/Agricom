@@ -1,10 +1,21 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { DatabaseModule } from './database/database.module';
+import { ConfigModule } from '@nestjs/config';
+import { validate } from './config/env.validation';
+import loggerConfig from './logger/logger.config';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    LoggerModule.forRoot({ useExisting: true, pinoHttp: loggerConfig }),
+    ConfigModule.forRoot({
+      envFilePath: ['.env.development', '.env.production'],
+      expandVariables: true,
+      validate,
+    }),
+    DatabaseModule,
+  ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
