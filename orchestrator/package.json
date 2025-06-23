@@ -21,7 +21,7 @@
     "typeorm": "npx ts-node -P ./tsconfig.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d ./src/database/database.data-source.ts ",
     "typeorm:migration:generate": "yarn run typeorm migration:generate --pretty ./src/database/migrations/$npm_config_name",
     "typeorm:migration:run": "yarn run typeorm migration:run",
-    "typeorm:migration:down": "yarn run typeorm migration:revert"
+    "typeorm:migration:revert": "yarn run typeorm migration:revert"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
